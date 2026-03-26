@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     // Retrieve the subscription details from Stripe
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as Stripe.Subscription
     
     // Using the userId we stored in metadata during checkout creation
     const userId = session.metadata?.userId
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         .from('profiles')
         .update({
           subscription_status: 'monthly', // or 'yearly' depending on Price ID logic
-          subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          subscription_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
         })
         .eq('id', userId)
     }
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
           .from('profiles')
           .update({
             subscription_status: 'none',
-            subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            subscription_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
           })
           .eq('email', customer.email)
       }
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
            .from('profiles')
            .update({
              subscription_status: 'monthly',
-             subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+             subscription_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
            })
            .eq('email', customer.email)
        }
